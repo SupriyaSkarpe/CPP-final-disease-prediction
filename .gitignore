@@ -1,0 +1,17 @@
+# Virtual environments
+render_ml/
+render311/
+env/
+venv/
+.conda/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
