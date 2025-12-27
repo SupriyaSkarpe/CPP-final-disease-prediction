@@ -5,21 +5,47 @@ import numpy as np
 
 app = FastAPI()
 
-# Load model
-model = joblib.load("models/heart_rf_model.pkl")
+# ================= LOAD MODELS =================
+heart_model = joblib.load("models/heart_rf_model.pkl")
+
+diabetes_model = joblib.load("models/diabetes_lr_model.pkl")
+diabetes_scaler = joblib.load("models/diabetes_scaler.pkl")
+
 
 @app.get("/")
 def home():
-    return {"message": "Heart Disease Prediction API running"}
+    return {"message": "Disease Prediction API running"}
 
+
+# ================= HEART =================
 class HeartInput(BaseModel):
     features: list
+
 
 @app.post("/predict/heart")
 def predict_heart(data: HeartInput):
     X = np.array(data.features).reshape(1, -1)
-    prediction = model.predict(X)[0]
+    prediction = heart_model.predict(X)[0]
 
     return {
+        "disease": "Heart Disease" if prediction == 1 else "No Heart Disease",
+        "prediction": int(prediction)
+    }
+
+
+# ================= DIABETES =================
+class DiabetesInput(BaseModel):
+    features: list
+
+
+@app.post("/predict/diabetes")
+def predict_diabetes(data: DiabetesInput):
+    X = np.array(data.features).reshape(1, -1)
+    X_scaled = diabetes_scaler.transform(X)
+
+    prediction = diabetes_model.predict(X_scaled)[0]
+
+    return {
+        "disease": "Diabetes" if prediction == 1 else "No Diabetes",
         "prediction": int(prediction)
     }

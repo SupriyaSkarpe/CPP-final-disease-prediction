@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
 # Load dataset
-df = pd.read_csv("C:/Users/HP/Documents/CPP-final-disease-prediction/datasets/heart.csv")
+df = pd.read_csv("C:/Users/HP/Documents/CPP-final-disease-prediction/dataset/heart.csv")
 
 # Encode categorical columns
 cat_cols = ['Sex', 'ChestPainType', 'RestingECG', 'ExerciseAngina', 'ST_Slope']
