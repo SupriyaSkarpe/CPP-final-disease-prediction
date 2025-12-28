@@ -22,8 +22,8 @@ class HeartInput(BaseModel):
 
 @app.post("/predict/heart")
 def predict_heart(data: HeartInput):
-    if len(data.features) != 13:
-        raise HTTPException(status_code=400, detail="Heart model expects 13 features")
+    if len(data.features) != 11:
+        raise HTTPException(status_code=400, detail="Heart model expects 11 features")
 
     X = np.array(data.features).reshape(1, -1)
     prediction = heart_model.predict(X)[0]
