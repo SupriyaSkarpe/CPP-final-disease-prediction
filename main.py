@@ -15,7 +15,7 @@ app = FastAPI(title="Disease Prediction API")
 
 # HEART MODELS
 heart_rf = joblib.load("models/heart_rf_model.pkl")
-heart_gb = joblib.load("models/heart_gb.pkl")
+#heart_gb = joblib.load("models/heart_gb.pkl")
 heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 
@@ -82,8 +82,8 @@ def predict_heart(model_name: str, data: HeartInput):
     if model_name == "rf":
         prediction = heart_rf.predict(X)[0]
 
-    elif model_name == "gb":
-        prediction = heart_gb.predict(X)[0]
+   # elif model_name == "gb":
+    #    prediction = heart_gb.predict(X)[0]
 
     elif model_name == "knn":
         X_scaled = heart_knn_scaler.transform(X)
@@ -92,7 +92,7 @@ def predict_heart(model_name: str, data: HeartInput):
     else:
         raise HTTPException(
             status_code=400,
-            detail="Invalid model name. Use: rf, gb, knn"
+            detail="Invalid model name. Use: rf, knn"
         )
 
     return {
