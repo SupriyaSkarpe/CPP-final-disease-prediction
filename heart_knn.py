@@ -47,3 +47,6 @@ print(classification_report(y_test, y_pred))
 
 joblib.dump(best_knn, "models/heart_knn.pkl")
 joblib.dump(scaler, "models/heart_knn_scaler.pkl")
+joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
+
+

@@ -106,5 +106,7 @@ print(classification_report(y_test, y_pred))
 # ===============================
 model.save("models/heart_ann_model.h5")
 joblib.dump(scaler, "models/heart_ann_scaler.pkl")
+joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
+
 
 print("✅ Neural Network model & scaler saved successfully!")

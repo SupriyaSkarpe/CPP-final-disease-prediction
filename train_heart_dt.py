@@ -73,5 +73,7 @@ print(classification_report(y_test, y_pred))
 # 8. Save model
 # =========================
 joblib.dump(model, "models/heart_dt_optimized.pkl")
+joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
+
 
 print("\nDecision Tree model saved successfully!")

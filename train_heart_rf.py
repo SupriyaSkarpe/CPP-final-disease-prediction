@@ -80,5 +80,7 @@ print(classification_report(y_test, y_pred))
 # Save Model
 # ===============================
 joblib.dump(best_model, "models/heart_rf_model.pkl")
+joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
+
 
 print("✅ Random Forest model saved")

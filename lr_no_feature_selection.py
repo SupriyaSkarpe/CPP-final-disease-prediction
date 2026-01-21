@@ -103,5 +103,7 @@ joblib.dump(
     scaler,
     "C:/Users/HP/Documents/CPP-final-disease-prediction/models/heart_lr_scaler.pkl"
 )
+joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
+
 
 print("✅ Model and scaler saved successfully!")

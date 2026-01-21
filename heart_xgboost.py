@@ -76,5 +76,7 @@ print(classification_report(y_test, y_pred))
 # ===============================
 joblib.dump(model, "models/heart_xgb_model.pkl")
 joblib.dump(scaler, "models/heart_xgb_scaler.pkl")
+joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
+
 
 print("✅ XGBoost model & scaler saved successfully!")
