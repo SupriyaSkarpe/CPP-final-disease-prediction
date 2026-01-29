@@ -1,0 +1,23 @@
+# Virtual environments
+render_ml/
+render311/
+env/
+venv/
+.conda/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+raw_ecg/
+ecg_images/
+*.xws
+ecg_image_pipeline/raw_ecg/
+ecg_image_pipeline/ecg_images/
+
