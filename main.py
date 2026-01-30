@@ -3,41 +3,29 @@ from pydantic import BaseModel
 import joblib
 import pandas as pd
 import shap
+from diet import router as diet_router
 
 # =====================================
 # CREATE APP
 # =====================================
-app = FastAPI(title="Disease Prediction API with XAI")
+app = FastAPI(title="Disease Prediction API with Human Explainable AI")
+app.include_router(diet_router)
 
 # =====================================
-# LOAD MODELS (ONCE)
+# LOAD MODELS
 # =====================================
-
-# HEART MODELS
 heart_rf = joblib.load("models/heart_rf_model.pkl")
 heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
-
-# Columns used during training
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
 
-# DIABETES MODELS
 diabetes_model = joblib.load("models/diabetes_lr_model.pkl")
 diabetes_scaler = joblib.load("models/diabetes_scaler.pkl")
 
 # =====================================
-# XAI EXPLAINER (CREATE ONCE)
+# SHAP EXPLAINER
 # =====================================
 heart_rf_explainer = shap.TreeExplainer(heart_rf)
-
-# =====================================
-# HOME ROUTE
-# =====================================
-@app.get("/")
-def home():
-    return {
-        "message": "Heart & Diabetes Disease Prediction API with Explainable AI is running"
-    }
 
 # =====================================
 # INPUT SCHEMAS
@@ -66,8 +54,31 @@ class DiabetesInput(BaseModel):
     DiabetesPedigreeFunction: float
     Age: int
 
+
 # =====================================
-# HEART PREDICTION (MULTI MODEL)
+# HUMAN EXPLANATION FUNCTION
+# =====================================
+def human_explanation(feature, impact):
+    direction = "increases" if impact > 0 else "reduces"
+
+    feature_map = {
+        "Cholesterol": "cholesterol level",
+        "RestingBP": "blood pressure",
+        "MaxHR": "heart rate",
+        "Age": "age",
+        "Oldpeak": "heart stress during exercise",
+        "FastingBS_1": "blood sugar level",
+        "ExerciseAngina_Y": "chest pain during exercise",
+        "ST_Slope_Flat": "ECG heart pattern",
+        "Sex_M": "male gender"
+    }
+
+    readable = feature_map.get(feature, feature.replace("_", " "))
+    return f"Your {readable} {direction} the risk of heart disease."
+
+
+# =====================================
+# HEART PREDICTION
 # =====================================
 @app.post("/predict/heart/{model_name}")
 def predict_heart(model_name: str, data: HeartInput):
@@ -78,16 +89,11 @@ def predict_heart(model_name: str, data: HeartInput):
 
     if model_name == "rf":
         prediction = heart_rf.predict(X)[0]
-
     elif model_name == "knn":
         X_scaled = heart_knn_scaler.transform(X)
         prediction = heart_knn.predict(X_scaled)[0]
-
     else:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid model name. Use: rf or knn"
-        )
+        raise HTTPException(status_code=400, detail="Use rf or knn")
 
     return {
         "disease": "Heart Disease",
@@ -95,63 +101,45 @@ def predict_heart(model_name: str, data: HeartInput):
         "prediction": int(prediction)
     }
 
+
 # =====================================
-# HEART EXPLAINABLE AI (SHAP)
+# HEART + XAI (HUMAN READABLE)
 # =====================================
 @app.post("/predict-explain/heart/rf")
 def predict_explain_heart_rf(data: HeartInput):
 
-    # ---------------------------
-    # Prepare input
-    # ---------------------------
     X = pd.DataFrame([data.dict()])
     X = pd.get_dummies(X)
     X = X.reindex(columns=HEART_COLUMNS, fill_value=0)
 
-    # ---------------------------
-    # Prediction
-    # ---------------------------
     prediction = int(heart_rf.predict(X)[0])
     probability = float(heart_rf.predict_proba(X)[0][1])
-
     label = "Yes" if prediction == 1 else "No"
 
-    # ---------------------------
-    # SHAP Explanation
-    # ---------------------------
     shap_values = heart_rf_explainer.shap_values(X)
-
-    if isinstance(shap_values, list):
-        shap_vals = shap_values[1]
-    else:
-        shap_vals = shap_values
-
+    shap_vals = shap_values[1] if isinstance(shap_values, list) else shap_values
     shap_vals = shap_vals.reshape(-1)
 
-    explanation = []
-    for feature, value in zip(HEART_COLUMNS, shap_vals):
-        explanation.append({
-            "feature": feature,
-            "impact": round(float(value), 4)
+    explanations = []
+    for feature, impact in zip(HEART_COLUMNS, shap_vals):
+        explanations.append({
+            "reason": human_explanation(feature, impact),
+            "impact": round(float(impact), 4)
         })
 
-    explanation = sorted(
-        explanation,
+    explanations = sorted(
+        explanations,
         key=lambda x: abs(x["impact"]),
         reverse=True
-    )
+    )[:5]
 
-    # ---------------------------
-    # Final Response
-    # ---------------------------
     return {
         "disease": "Heart Disease",
         "prediction": label,
-        "prediction_code": prediction,
         "probability": round(probability * 100, 2),
         "xai": {
-            "method": "SHAP (Local Explanation)",
-            "top_features": explanation[:5]
+            "method": "SHAP (Human-Friendly Explanation)",
+            "reasons": explanations
         }
     }
 
@@ -164,11 +152,9 @@ def predict_diabetes(data: DiabetesInput):
 
     X = pd.DataFrame([data.dict()])
     X_scaled = diabetes_scaler.transform(X)
-
     prediction = diabetes_model.predict(X_scaled)[0]
 
     return {
         "disease": "Diabetes",
-        "model_used": "Logistic Regression",
         "prediction": int(prediction)
     }
