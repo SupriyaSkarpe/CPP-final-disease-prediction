@@ -26,6 +26,8 @@ HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
 diabetes_lr = joblib.load("models/diabetes_lr_model.pkl")
 diabetes_knn = joblib.load("models/diabetes_knn_model.pkl")
 diabetes_scaler = joblib.load("models/diabetes_scaler.pkl")
+DIABETES_FEATURES = joblib.load("models/diabetes_features.pkl")
+
 # =====================================
 # SHAP EXPLAINER
 # =====================================
@@ -155,6 +157,10 @@ def predict_explain_heart_rf(data: HeartInput):
 def predict_diabetes(model_name: str, data: DiabetesInput):
 
     X = pd.DataFrame([data.dict()])
+
+    # Keep only features used during training
+    X = X[DIABETES_FEATURES]
+
     X_scaled = diabetes_scaler.transform(X)
 
     if model_name == "lr":
