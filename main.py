@@ -14,14 +14,18 @@ app.include_router(diet_router)
 # =====================================
 # LOAD MODELS
 # =====================================
+# =====================================
+# LOAD MODELS
+# =====================================
 heart_rf = joblib.load("models/heart_rf_model.pkl")
 heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
 
-diabetes_model = joblib.load("models/diabetes_lr_model.pkl")
+# Diabetes models
+diabetes_lr = joblib.load("models/diabetes_lr_model.pkl")
+diabetes_knn = joblib.load("models/diabetes_knn_model.pkl")
 diabetes_scaler = joblib.load("models/diabetes_scaler.pkl")
-
 # =====================================
 # SHAP EXPLAINER
 # =====================================
@@ -147,14 +151,23 @@ def predict_explain_heart_rf(data: HeartInput):
 # =====================================
 # DIABETES PREDICTION
 # =====================================
-@app.post("/predict/diabetes")
-def predict_diabetes(data: DiabetesInput):
+@app.post("/predict/diabetes/{model_name}")
+def predict_diabetes(model_name: str, data: DiabetesInput):
 
     X = pd.DataFrame([data.dict()])
     X_scaled = diabetes_scaler.transform(X)
-    prediction = diabetes_model.predict(X_scaled)[0]
+
+    if model_name == "lr":
+        prediction = diabetes_lr.predict(X_scaled)[0]
+
+    elif model_name == "knn":
+        prediction = diabetes_knn.predict(X_scaled)[0]
+
+    else:
+        raise HTTPException(status_code=400, detail="Use lr or knn")
 
     return {
         "disease": "Diabetes",
+        "model_used": model_name,
         "prediction": int(prediction)
     }
