@@ -140,17 +140,18 @@ def predict_diabetes(model_name: str, data: DiabetesInput):
         X = pd.DataFrame([data.model_dump()])
         X = X.reindex(columns=DIABETES_FEATURES, fill_value=0)
 
-        X_scaled = diabetes_scaler.transform(X)if model_name == "lr":
-    prediction = diabetes_lr.predict(X_scaled)[0]
+        X_scaled = diabetes_scaler.transform(X)
+        if model_name == "lr":
+            prediction = diabetes_lr.predict(X_scaled)[0]
 
-elif model_name == "knn":
-    prediction = diabetes_knn.predict(X_scaled)[0]
+        elif model_name == "knn":
+            prediction = diabetes_knn.predict(X_scaled)[0]
 
-elif model_name == "rf":
-    prediction = diabetes_rf.predict(X_scaled)[0]
-
-else:
-    raise HTTPException(status_code=400, detail="Use lr, knn or rf")
+        elif model_name == "rf":
+            prediction = diabetes_rf.predict(X_scaled)[0]
+    
+        else:
+            raise HTTPException(status_code=400, detail="Use lr, knn or rf")
 
         return {
             "disease": "Diabetes",
