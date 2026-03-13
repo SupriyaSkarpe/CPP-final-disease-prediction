@@ -13,11 +13,13 @@ heart_rf = joblib.load("models/heart_rf_model.pkl")
 heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
+# Diabetes models
+diabetes_lr = joblib.load("diabetes_lr_model.pkl")
+diabetes_knn = joblib.load("diabetes_knn_model.pkl")
+diabetes_rf = joblib.load("diabetes_rf_model.pkl")
 
-diabetes_lr = joblib.load("models/diabetes_lr_model.pkl")
-diabetes_knn = joblib.load("models/diabetes_knn_model.pkl")
-diabetes_scaler = joblib.load("models/diabetes_scaler.pkl")
-DIABETES_FEATURES = joblib.load("models/diabetes_features.pkl")
+diabetes_scaler = joblib.load("diabetes_scaler.pkl")
+DIABETES_FEATURES = joblib.load("diabetes_features.pkl")
 
 heart_rf_explainer = shap.TreeExplainer(heart_rf)
 
@@ -139,15 +141,17 @@ def predict_diabetes(model_name: str, data: DiabetesInput):
         X = X.reindex(columns=DIABETES_FEATURES, fill_value=0)
 
         X_scaled = diabetes_scaler.transform(X)
+if model_name == "lr":
+    prediction = diabetes_lr.predict(X_scaled)[0]
 
-        if model_name == "lr":
-            prediction = diabetes_lr.predict(X_scaled)[0]
+elif model_name == "knn":
+    prediction = diabetes_knn.predict(X_scaled)[0]
 
-        elif model_name == "knn":
-            prediction = diabetes_knn.predict(X_scaled)[0]
+elif model_name == "rf":
+    prediction = diabetes_rf.predict(X_scaled)[0]
 
-        else:
-            raise HTTPException(status_code=400, detail="Use lr or knn")
+else:
+    raise HTTPException(status_code=400, detail="Use lr, knn or rf")
 
         return {
             "disease": "Diabetes",
