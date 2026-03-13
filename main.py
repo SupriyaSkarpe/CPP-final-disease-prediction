@@ -5,37 +5,23 @@ import pandas as pd
 import shap
 from diet import router as diet_router
 
-# =====================================
-# CREATE APP
-# =====================================
 app = FastAPI(title="Disease Prediction API with Human Explainable AI")
 app.include_router(diet_router)
 
-# =====================================
-# LOAD MODELS
-# =====================================
-# =====================================
-# LOAD MODELS
-# =====================================
+
 heart_rf = joblib.load("models/heart_rf_model.pkl")
 heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
 
-# Diabetes models
 diabetes_lr = joblib.load("models/diabetes_lr_model.pkl")
 diabetes_knn = joblib.load("models/diabetes_knn_model.pkl")
 diabetes_scaler = joblib.load("models/diabetes_scaler.pkl")
 DIABETES_FEATURES = joblib.load("models/diabetes_features.pkl")
 
-# =====================================
-# SHAP EXPLAINER
-# =====================================
 heart_rf_explainer = shap.TreeExplainer(heart_rf)
 
-# =====================================
-# INPUT SCHEMAS
-# =====================================
+
 class HeartInput(BaseModel):
     Age: int
     RestingBP: int
@@ -61,9 +47,7 @@ class DiabetesInput(BaseModel):
     Age: int
 
 
-# =====================================
-# HUMAN EXPLANATION FUNCTION
-# =====================================
+
 def human_explanation(feature, impact):
     direction = "increases" if impact > 0 else "reduces"
 
@@ -83,9 +67,7 @@ def human_explanation(feature, impact):
     return f"Your {readable} {direction} the risk of heart disease."
 
 
-# =====================================
-# HEART PREDICTION
-# =====================================
+
 @app.post("/predict/heart/{model_name}")
 def predict_heart(model_name: str, data: HeartInput):
 
@@ -108,9 +90,7 @@ def predict_heart(model_name: str, data: HeartInput):
     }
 
 
-# =====================================
-# HEART + XAI (HUMAN READABLE)
-# =====================================
+
 @app.post("/predict-explain/heart/rf")
 def predict_explain_heart_rf(data: HeartInput):
 
@@ -150,30 +130,30 @@ def predict_explain_heart_rf(data: HeartInput):
     }
 
 
-# =====================================
-# DIABETES PREDICTION
-# =====================================
+
 @app.post("/predict/diabetes/{model_name}")
 def predict_diabetes(model_name: str, data: DiabetesInput):
 
-    X = pd.DataFrame([data.dict()])
+    try:
+        X = pd.DataFrame([data.model_dump()])
+        X = X.reindex(columns=DIABETES_FEATURES, fill_value=0)
 
-    # Keep only features used during training
-    X = X[DIABETES_FEATURES]
+        X_scaled = diabetes_scaler.transform(X)
 
-    X_scaled = diabetes_scaler.transform(X)
+        if model_name == "lr":
+            prediction = diabetes_lr.predict(X_scaled)[0]
 
-    if model_name == "lr":
-        prediction = diabetes_lr.predict(X_scaled)[0]
+        elif model_name == "knn":
+            prediction = diabetes_knn.predict(X_scaled)[0]
 
-    elif model_name == "knn":
-        prediction = diabetes_knn.predict(X_scaled)[0]
+        else:
+            raise HTTPException(status_code=400, detail="Use lr or knn")
 
-    else:
-        raise HTTPException(status_code=400, detail="Use lr or knn")
+        return {
+            "disease": "Diabetes",
+            "model_used": model_name,
+            "prediction": int(prediction)
+        }
 
-    return {
-        "disease": "Diabetes",
-        "model_used": model_name,
-        "prediction": int(prediction)
-    }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
