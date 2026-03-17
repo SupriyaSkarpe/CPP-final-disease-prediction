@@ -6,10 +6,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
 
-# Load dataset
+
 df = pd.read_csv("dataset/heart.csv")
 
-# One-hot encoding
 df = pd.get_dummies(
     df,
     columns=['Sex', 'ChestPainType', 'RestingECG',
@@ -24,12 +23,10 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, stratify=y, random_state=42
 )
 
-# Scaling REQUIRED for KNN
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# Hyperparameter tuning
 param_grid = {"n_neighbors": [3,5,7,9,11]}
 
 knn = KNeighborsClassifier()
