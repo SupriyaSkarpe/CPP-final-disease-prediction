@@ -17,10 +17,24 @@ heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
 
+
 # Diabetes models
 diabetes_lr = joblib.load("diabetes_lr_model.pkl")
 diabetes_knn = joblib.load("diabetes_knn_model.pkl")
 diabetes_rf = joblib.load("diabetes_rf_model.pkl")
+
+diabetes_lr = joblib.load("models/diabetes_lr_model.pkl")
+diabetes_knn = joblib.load("models/diabetes_knn_model.pkl")
+diabetes_scaler = joblib.load("models/diabetes_scaler.pkl")
+DIABETES_FEATURES = joblib.load("models/diabetes_features.pkl")
+heart_svm = joblib.load("models/heart_svm.pkl")
+heart_svm_scaler = joblib.load("models/heart_svm_scaler.pkl")
+
+heart_xgb = joblib.load("models/heart_xgb.pkl")
+heart_catboost = joblib.load("models/heart_catboost.pkl")
+heart_dt = joblib.load("models/heart_dt.pkl")
+heart_gb = joblib.load("models/heart_gb.pkl")
+
 
 diabetes_scaler = joblib.load("diabetes_scaler.pkl")
 DIABETES_FEATURES = joblib.load("diabetes_features.pkl")
@@ -85,6 +99,7 @@ def human_explanation(feature, impact):
 # =========================
 # HEART PREDICTION
 # =========================
+
 
 @app.post("/predict/heart/{model_name}")
 def predict_heart(model_name: str, data: HeartInput):
@@ -177,10 +192,8 @@ def predict_explain_heart_rf(data: HeartInput):
 def predict_diabetes(model_name: str, data: DiabetesInput):
 
     try:
-
         X = pd.DataFrame([data.dict()])
         X = X.reindex(columns=DIABETES_FEATURES, fill_value=0)
-
         X_scaled = diabetes_scaler.transform(X)
 
         if model_name == "lr":
@@ -203,6 +216,71 @@ def predict_diabetes(model_name: str, data: DiabetesInput):
             "model_used": model_name,
             "prediction": int(prediction),
             "probability": round(float(probability) * 100, 2)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/predict/heart/all")
+def predict_all_heart(data: HeartInput):
+
+    try:
+        X = pd.DataFrame([data.dict()])
+        X = pd.get_dummies(X)
+        X = X.reindex(columns=HEART_COLUMNS, fill_value=0)
+
+        results = {}
+
+        # RF
+        results["Random Forest"] = {
+            "prediction": int(heart_rf.predict(X)[0]),
+            "probability": round(float(heart_rf.predict_proba(X)[0][1]) * 100, 2)
+        }
+
+        # KNN
+        X_knn = heart_knn_scaler.transform(X)
+        results["KNN"] = {
+            "prediction": int(heart_knn.predict(X_knn)[0]),
+            "probability": round(float(heart_knn.predict_proba(X_knn)[0][1]) * 100, 2)
+        }
+
+        # SVM
+        X_svm = heart_svm_scaler.transform(X)
+        results["SVM"] = {
+            "prediction": int(heart_svm.predict(X_svm)[0]),
+            "probability": round(float(heart_svm.predict_proba(X_svm)[0][1]) * 100, 2)
+        }
+
+        # XGB
+        results["XGBoost"] = {
+            "prediction": int(heart_xgb.predict(X)[0]),
+            "probability": round(float(heart_xgb.predict_proba(X)[0][1]) * 100, 2)
+        }
+
+        # CatBoost
+        results["CatBoost"] = {
+            "prediction": int(heart_catboost.predict(X)[0]),
+            "probability": round(float(heart_catboost.predict_proba(X)[0][1]) * 100, 2)
+        }
+
+        # DT
+        results["Decision Tree"] = {
+            "prediction": int(heart_dt.predict(X)[0]),
+            "probability": round(float(heart_dt.predict_proba(X)[0][1]) * 100, 2)
+        }
+
+        # GB
+        results["Gradient Boosting"] = {
+            "prediction": int(heart_gb.predict(X)[0]),
+            "probability": round(float(heart_gb.predict_proba(X)[0][1]) * 100, 2)
+        }
+
+        best_model = max(results.items(), key=lambda x: x[1]["probability"])
+
+        return {
+            "disease": "Heart Disease",
+            "results": results,
+            "best_model": best_model[0]
         }
 
     except Exception as e:
