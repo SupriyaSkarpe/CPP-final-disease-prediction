@@ -77,6 +77,5 @@ print(classification_report(y_test, y_pred))
 # 6. Save model
 # ===============================
 joblib.dump(best_dt, "models/heart_decision_tree_best.pkl")
-oblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
-
+joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
 print("✅ Best Decision Tree model saved")
