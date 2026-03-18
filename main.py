@@ -13,13 +13,13 @@ heart_rf = joblib.load("models/heart_rf_model.pkl")
 heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
-heart_svm = joblib.load("models/heart_svm.pkl")
+heart_svm = joblib.load("models/heart_svm_best.pkl")
 heart_svm_scaler = joblib.load("models/heart_svm_scaler.pkl")
 
-heart_dt = joblib.load("models/heart_dt.pkl")
+heart_dt = joblib.load("models/heart_dicicsion_tree_best.pkl")
 heart_gb = joblib.load("models/heart_gb.pkl")
-heart_xgb = joblib.load("models/heart_xgb.pkl")
-heart_catboost = joblib.load("models/heart_catboost.pkl")
+heart_xgb = joblib.load("models/heart_xgb_model.pkl")
+heart_catboost = joblib.load("models/catboost_heart_model.pkl")
 
 
 heart_rf_explainer = shap.TreeExplainer(heart_rf)
