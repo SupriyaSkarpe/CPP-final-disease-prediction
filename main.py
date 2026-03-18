@@ -14,10 +14,6 @@ heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
 
-diabetes_lr = joblib.load("models/diabetes_lr_model.pkl")
-diabetes_knn = joblib.load("models/diabetes_knn_model.pkl")
-diabetes_scaler = joblib.load("models/diabetes_scaler.pkl")
-DIABETES_FEATURES = joblib.load("models/diabetes_features.pkl")
 
 heart_rf_explainer = shap.TreeExplainer(heart_rf)
 
@@ -130,27 +126,3 @@ def predict_explain_heart_rf(data: HeartInput):
     }
 
 
-
-@app.post("/predict/diabetes/{model_name}")
-def predict_diabetes(model_name: str, data: DiabetesInput):
-
-    X = pd.DataFrame([data.dict()])
-
-    X = X[DIABETES_FEATURES]
-
-    X_scaled = diabetes_scaler.transform(X)
-
-    if model_name == "lr":
-        prediction = diabetes_lr.predict(X_scaled)[0]
-
-    elif model_name == "knn":
-        prediction = diabetes_knn.predict(X_scaled)[0]
-
-    else:
-        raise HTTPException(status_code=400, detail="Use lr or knn")
-
-    return {
-        "disease": "Diabetes",
-        "model_used": model_name,
-        "prediction": int(prediction)
-    }
