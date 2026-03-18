@@ -13,13 +13,6 @@ heart_rf = joblib.load("models/heart_rf_model.pkl")
 heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
-heart_svm = joblib.load("models/heart_svm_best.pkl")
-heart_svm_scaler = joblib.load("models/heart_svm_scaler.pkl")
-
-heart_dt = joblib.load("models/heart_dicicsion_tree_best.pkl")
-heart_gb = joblib.load("models/heart_gb.pkl")
-heart_xgb = joblib.load("models/heart_xgb_model.pkl")
-heart_catboost = joblib.load("models/catboost_heart_model.pkl")
 
 
 heart_rf_explainer = shap.TreeExplainer(heart_rf)
@@ -134,86 +127,3 @@ def predict_explain_heart_rf(data: HeartInput):
 
 
 
-@app.post("/predict/heart/all")
-def predict_all_heart(data: HeartInput):
-
-    try:
-        X = pd.DataFrame([data.dict()])
-        X = pd.get_dummies(X)
-        X = X.reindex(columns=HEART_COLUMNS, fill_value=0)
-
-        results = {}
-
-        # 🔹 Random Forest
-        rf_pred = int(heart_rf.predict(X)[0])
-        rf_prob = float(heart_rf.predict_proba(X)[0][1])
-        results["Random Forest"] = {
-            "prediction": rf_pred,
-            "probability": round(rf_prob * 100, 2)
-        }
-
-        # 🔹 KNN
-        X_knn = heart_knn_scaler.transform(X)
-        knn_pred = int(heart_knn.predict(X_knn)[0])
-        knn_prob = float(heart_knn.predict_proba(X_knn)[0][1])
-        results["KNN"] = {
-            "prediction": knn_pred,
-            "probability": round(knn_prob * 100, 2)
-        }
-
-        # 🔹 SVM
-        X_svm = heart_svm_scaler.transform(X)
-        svm_pred = int(heart_svm.predict(X_svm)[0])
-        svm_prob = float(heart_svm.predict_proba(X_svm)[0][1])
-        results["SVM"] = {
-            "prediction": svm_pred,
-            "probability": round(svm_prob * 100, 2)
-        }
-
-        # 🔹 Decision Tree
-        dt_pred = int(heart_dt.predict(X)[0])
-        dt_prob = float(heart_dt.predict_proba(X)[0][1])
-        results["Decision Tree"] = {
-            "prediction": dt_pred,
-            "probability": round(dt_prob * 100, 2)
-        }
-
-        # 🔹 Gradient Boosting
-        gb_pred = int(heart_gb.predict(X)[0])
-        gb_prob = float(heart_gb.predict_proba(X)[0][1])
-        results["Gradient Boosting"] = {
-            "prediction": gb_pred,
-            "probability": round(gb_prob * 100, 2)
-        }
-
-        # 🔹 XGBoost
-        xgb_pred = int(heart_xgb.predict(X)[0])
-        xgb_prob = float(heart_xgb.predict_proba(X)[0][1])
-        results["XGBoost"] = {
-            "prediction": xgb_pred,
-            "probability": round(xgb_prob * 100, 2)
-        }
-
-        # 🔹 CatBoost
-        cat_pred = int(heart_catboost.predict(X)[0])
-        cat_prob = float(heart_catboost.predict_proba(X)[0][1])
-        results["CatBoost"] = {
-            "prediction": cat_pred,
-            "probability": round(cat_prob * 100, 2)
-        }
-
-        # 🔥 BEST MODEL (highest probability)
-        best_model = max(results.items(), key=lambda x: x[1]["probability"])
-
-        return {
-            "disease": "Heart Disease",
-            "all_model_results": results,
-            "best_model": {
-                "name": best_model[0],
-                "prediction": best_model[1]["prediction"],
-                "probability": best_model[1]["probability"]
-            }
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
