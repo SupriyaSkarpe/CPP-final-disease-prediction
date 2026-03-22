@@ -90,40 +90,53 @@ def predict_heart(model_name: str, data: HeartInput):
 @app.post("/predict-explain/heart/rf")
 def predict_explain_heart_rf(data: HeartInput):
 
-    X = pd.DataFrame([data.dict()])
-    X = pd.get_dummies(X)
-    X = X.reindex(columns=HEART_COLUMNS, fill_value=0)
+    try:
+        X = pd.DataFrame([data.dict()])
+        X = pd.get_dummies(X)
+        X = X.reindex(columns=HEART_COLUMNS, fill_value=0)
 
-    prediction = int(heart_rf.predict(X)[0])
-    probability = float(heart_rf.predict_proba(X)[0][1])
-    label = "Yes" if prediction == 1 else "No"
+        prediction = int(heart_rf.predict(X)[0])
+        probability = float(heart_rf.predict_proba(X)[0][1])
 
-    shap_values = heart_rf_explainer.shap_values(X)
-    shap_vals = shap_values[1] if isinstance(shap_values, list) else shap_values
-    shap_vals = shap_vals.reshape(-1)
+        label = "Yes" if prediction == 1 else "No"
 
-    explanations = []
-    for feature, impact in zip(HEART_COLUMNS, shap_vals):
-        explanations.append({
-            "reason": human_explanation(feature, impact),
-            "impact": round(float(impact), 4)
-        })
+        # ✅ SAFE SHAP (no crash)
+        try:
+            shap_values = heart_rf_explainer.shap_values(X)
 
-    explanations = sorted(
-        explanations,
-        key=lambda x: abs(x["impact"]),
-        reverse=True
-    )[:5]
+            if isinstance(shap_values, list):
+                shap_vals = shap_values[1][0]
+            else:
+                shap_vals = shap_values[0]
 
-    return {
-        "disease": "Heart Disease",
-        "prediction": label,
-        "probability": round(probability * 100, 2),
-        "xai": {
-            "method": "SHAP (Human-Friendly Explanation)",
-            "reasons": explanations
+            explanations = []
+
+            for feature, impact in zip(HEART_COLUMNS, shap_vals):
+                explanations.append({
+                    "reason": human_explanation(feature, impact),
+                    "impact": round(float(impact), 4)
+                })
+
+            explanations = sorted(
+                explanations,
+                key=lambda x: abs(x["impact"]),
+                reverse=True
+            )[:5]
+
+        except Exception as e:
+            explanations = [{"reason": "Explanation unavailable", "impact": 0}]
+
+        return {
+            "disease": "Heart Disease",
+            "prediction": label,
+            "probability": round(probability * 100, 2),
+            "xai": {
+                "method": "SHAP",
+                "reasons": explanations
+            }
         }
-    }
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
