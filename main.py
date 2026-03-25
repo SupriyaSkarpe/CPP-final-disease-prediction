@@ -17,7 +17,7 @@ heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 
 heart_lr = joblib.load("models/heart_lr_best.pkl")
 
-heart_dt = joblib.load("models/heart_dicision_tree_best.pkl")
+heart_dt = joblib.load("models/heart_decision_tree_best.pkl")
 heart_gb = joblib.load("models/heart_gb.pkl")
 heart_xgb = joblib.load("models/heart_xgb_model.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
