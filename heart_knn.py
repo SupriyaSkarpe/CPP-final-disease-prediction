@@ -9,6 +9,7 @@ from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
 
 df = pd.read_csv("dataset/heart.csv")
 
+
 df = pd.get_dummies(
     df,
     columns=['Sex', 'ChestPainType', 'RestingECG',
@@ -18,6 +19,8 @@ df = pd.get_dummies(
 
 X = df.drop("HeartDisease", axis=1)
 y = df["HeartDisease"]
+
+joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, stratify=y, random_state=42
@@ -44,6 +47,7 @@ print(classification_report(y_test, y_pred))
 
 joblib.dump(best_knn, "models/heart_knn.pkl")
 joblib.dump(scaler, "models/heart_knn_scaler.pkl")
-joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
 
 
+
+print("✅ KNN trained correctly")

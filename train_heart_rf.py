@@ -10,7 +10,6 @@ df = pd.read_csv(
     "C:/Users/HP/Documents/CPP-final-disease-prediction/dataset/heart.csv"
 )
 
-
 df = pd.get_dummies(
     df,
     columns=['Sex', 'ChestPainType', 'RestingECG', 'ExerciseAngina', 'ST_Slope'],
@@ -19,7 +18,7 @@ df = pd.get_dummies(
 
 X = df.drop("HeartDisease", axis=1)
 y = df["HeartDisease"]
-
+joblib.dump(X.columns.tolist(), "models/heart_columns.pkl")
 X_train, X_test, y_train, y_test = train_test_split(
     X, y,
     test_size=0.2,
