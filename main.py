@@ -18,7 +18,7 @@ heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
 heart_lr = joblib.load("models/heart_lr_best.pkl")
 
 heart_dt = joblib.load("models/heart_decision_tree_best.pkl")
-heart_gb = joblib.load("models/heart_gb.pkl")
+#heart_gb = joblib.load("models/heart_gb.pkl")
 heart_xgb = joblib.load("models/heart_xgb_model.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
 
@@ -165,13 +165,12 @@ def predict_all_heart(data: HeartInput):
         }
 
         # ================= Gradient Boosting =================
-        gb_pred = int(heart_gb.predict(X)[0])
-        gb_prob = float(heart_gb.predict_proba(X)[0][1])
-
-        results["Gradient Boosting"] = {
-            "prediction": gb_pred,
-            "probability": round(gb_prob * 100, 2)
-        }
+      #  gb_pred = int(heart_gb.predict(X)[0])
+       # gb_prob = float(heart_gb.predict_proba(X)[0][1])
+#       results["Gradient Boosting"] = {
+ #           "prediction": gb_pred,
+  #          "probability": round(gb_prob * 100, 2)
+   #     }
 
         # ================= XGBoost =================
         xgb_pred = int(heart_xgb.predict(X)[0])
