@@ -17,6 +17,17 @@ HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
 
 heart_rf_explainer = shap.TreeExplainer(heart_rf)
 
+def preprocess_heart_input(data):
+    X = pd.DataFrame([data.dict()])
+
+    # Apply one-hot encoding
+    X = pd.get_dummies(X)
+
+    # IMPORTANT: match training columns exactly
+    X = X.reindex(columns=HEART_COLUMNS, fill_value=0)
+
+    return X
+
 
 class HeartInput(BaseModel):
     Age: int
@@ -67,23 +78,27 @@ def human_explanation(feature, impact):
 @app.post("/predict/heart/{model_name}")
 def predict_heart(model_name: str, data: HeartInput):
 
-    X = pd.DataFrame([data.dict()])
-    X = pd.get_dummies(X)
-    X = X.reindex(columns=HEART_COLUMNS, fill_value=0)
+    try:
+        X = preprocess_heart_input(data)
 
-    if model_name == "rf":
-        prediction = heart_rf.predict(X)[0]
-    elif model_name == "knn":
-        X_scaled = heart_knn_scaler.transform(X)
-        prediction = heart_knn.predict(X_scaled)[0]
-    else:
-        raise HTTPException(status_code=400, detail="Use rf or knn")
+        if model_name == "rf":
+            prediction = heart_rf.predict(X)[0]
 
-    return {
-        "disease": "Heart Disease",
-        "model_used": model_name,
-        "prediction": int(prediction)
-    }
+        elif model_name == "knn":
+            X_scaled = heart_knn_scaler.transform(X.values)  # ✅ FIX
+            prediction = heart_knn.predict(X_scaled)[0]
+
+        else:
+            raise HTTPException(status_code=400, detail="Use rf or knn")
+
+        return {
+            "disease": "Heart Disease",
+            "model_used": model_name,
+            "prediction": int(prediction)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
