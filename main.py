@@ -12,7 +12,7 @@ app.include_router(diet_router)
 heart_rf = joblib.load("models/heart_rf_model.pkl")
 heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
-heart_svm = joblib.load("models/heart_svm_best.pkl")
+#heart_svm = joblib.load("models/heart_svm_best.pkl")
 #heart_svm_scaler = joblib.load("models/heart_svm_scaler.pkl")
 
 #heart_lr = joblib.load("models/heart_lr.pkl")
@@ -130,8 +130,8 @@ def predict_all_heart(data: HeartInput):
         #esults["Logistic Regression"] = round(lr_prob * 100, 2)
 
         # SVM
-        svm_prob = heart_svm.predict_proba(X)[0][1]
-        results["SVM"] = round(svm_prob * 100, 2)
+        #svm_prob = heart_svm.predict_proba(X)[0][1]
+        #results["SVM"] = round(svm_prob * 100, 2)
 
         # Decision Tree
         dt_prob = heart_dt.predict_proba(X)[0][1]
