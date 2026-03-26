@@ -12,12 +12,12 @@ app.include_router(diet_router)
 heart_rf = joblib.load("models/heart_rf_model.pkl")
 heart_knn = joblib.load("models/heart_knn.pkl")
 heart_knn_scaler = joblib.load("models/heart_knn_scaler.pkl")
-# heart_svm = joblib.load("models/heart_svm.pkl")
+heart_svm = joblib.load("models/heart_svm_best.pkl")
 #heart_svm_scaler = joblib.load("models/heart_svm_scaler.pkl")
 
 #heart_lr = joblib.load("models/heart_lr.pkl")
 
-#heart_dt = joblib.load("models/heart_dt.pkl")
+heart_dt = joblib.load("models/heart_decision_tree_best.pkl")
 #heart_gb = joblib.load("models/heart_gb.pkl")
 #heart_xgb = joblib.load("models/heart_xgb.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
@@ -109,7 +109,49 @@ def predict_heart(model_name: str, data: HeartInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/predict-all/heart")
+def predict_all_heart(data: HeartInput):
+    try:
+        X = preprocess_heart_input(data)
 
+        results = {}
+
+        # Random Forest
+        rf_prob = heart_rf.predict_proba(X)[0][1]
+        results["Random Forest"] = round(rf_prob * 100, 2)
+
+        # KNN
+        X_scaled = heart_knn_scaler.transform(X)
+        knn_prob = heart_knn.predict_proba(X_scaled)[0][1]
+        results["KNN"] = round(knn_prob * 100, 2)
+
+        # Logistic Regression
+        #lr_prob = heart_lr.predict_proba(X)[0][1]
+        #esults["Logistic Regression"] = round(lr_prob * 100, 2)
+
+        # SVM
+        svm_prob = heart_svm.predict_proba(X)[0][1]
+        results["SVM"] = round(svm_prob * 100, 2)
+
+        # Decision Tree
+        dt_prob = heart_dt.predict_proba(X)[0][1]
+        results["Decision Tree"] = round(dt_prob * 100, 2)
+
+        # Gradient Boosting
+        #gb_prob = heart_gb.predict_proba(X)[0][1]
+        #results["Gradient Boosting"] = round(gb_prob * 100, 2)
+
+        # XGBoost
+        #xgb_prob = heart_xgb.predict_proba(X)[0][1]
+        #results["XGBoost"] = round(xgb_prob * 100, 2)
+
+        return {
+            "disease": "Heart Disease",
+            "all_model_predictions (%)": results
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict-explain/heart/rf")
 def predict_explain_heart_rf(data: HeartInput):
