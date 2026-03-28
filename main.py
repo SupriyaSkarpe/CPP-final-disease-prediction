@@ -309,6 +309,9 @@ def predict_full_diabetes(data: DiabetesInput):
         # ===== Decision Tree =====
         dt_prob = diabetes_dt.predict_proba(X)[0][1]
         results["Decision Tree"] = round(dt_prob * 100, 2)
+        avg_prob = (rf_prob + knn_prob + svm_prob + lr_prob + dt_prob) / 5
+        final_pred = 1 if avg_prob > 0.5 else 0
+        label = "Diabetes Detected" if final_pred == 1 else "No Diabetes"
 
         # ===== SHAP EXPLANATION (RF ONLY) =====
         try:
@@ -339,6 +342,7 @@ def predict_full_diabetes(data: DiabetesInput):
 
         return {
             "disease": "Diabetes",
+            "final_prediction": label,
             "predictions": results,
             "explanation_model": "Random Forest",
             "explanations": explanations

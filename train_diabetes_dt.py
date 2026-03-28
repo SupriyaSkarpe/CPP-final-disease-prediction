@@ -42,12 +42,12 @@ X_train, X_test, y_train, y_test = train_test_split(
 # TRAIN DECISION TREE
 # =========================
 dt = DecisionTreeClassifier(
-    max_depth=5,          # control overfitting
+    max_depth=5,
+    min_samples_split=10,
     random_state=42
 )
 
 dt.fit(X_train, y_train)
-
 # =========================
 # PREDICTION
 # =========================
