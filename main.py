@@ -121,7 +121,7 @@ def predict_all_heart(data: HeartInput):
         results["Random Forest"] = round(rf_prob * 100, 2)
 
         # KNN
-        X_scaled = heart_knn_scaler.transform(X)
+        X_scaled = heart_knn_scaler.transform(X.values)
         knn_prob = heart_knn.predict_proba(X_scaled)[0][1]
         results["KNN"] = round(knn_prob * 100, 2)
 
