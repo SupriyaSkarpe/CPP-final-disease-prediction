@@ -30,7 +30,7 @@ diabetes_knn_scaler = joblib.load("models/diabetes_knn_scaler.pkl")
 diabetes_svm = joblib.load("models/diabetes_svm_model.pkl")
 diabetes_svm_scaler = joblib.load("models/diabetes_svm_scaler.pkl")
 
-diabetes_lr = joblib.load("models/diabetes_lr_model.pkl")
+diabetes_lr = joblib.load("models/diabetes_lr.pkl")
 diabetes_svm_scaler = joblib.load("models/diabetes_lr_scaler.pkl")
 
 

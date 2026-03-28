@@ -1,9 +1,9 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
@@ -40,22 +40,19 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # =========================
-# SCALING (IMPORTANT)
+# PIPELINE MODEL
 # =========================
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+model = Pipeline([
+    ('scaler', StandardScaler()),
+    ('lr', LogisticRegression(max_iter=1000))
+])
 
-# =========================
-# TRAIN LOGISTIC REGRESSION
-# =========================
-lr = LogisticRegression(max_iter=1000)
-lr.fit(X_train_scaled, y_train)
+model.fit(X_train, y_train)
 
 # =========================
 # PREDICTION
 # =========================
-y_pred = lr.predict(X_test_scaled)
+y_pred = model.predict(X_test)
 
 # =========================
 # METRICS
@@ -79,9 +76,8 @@ plt.ylabel("Actual")
 plt.show()
 
 # =========================
-# SAVE MODEL + SCALER
+# SAVE MODEL (ONLY ONE FILE)
 # =========================
-joblib.dump(lr, "models/diabetes_lr_model.pkl")
-joblib.dump(scaler, "models/diabetes_lr_scaler.pkl")
+joblib.dump(model, "models/diabetes_lr.pkl")
 
-print("\nLogistic Regression model saved successfully!")
+print("\nModel saved successfully!")
