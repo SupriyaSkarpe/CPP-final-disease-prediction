@@ -21,10 +21,29 @@ heart_dt = joblib.load("models/heart_decision_tree_best.pkl")
 #heart_gb = joblib.load("models/heart_gb.pkl")
 #heart_xgb = joblib.load("models/heart_xgb.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
+# ===== DIABETES MODELS =====
+diabetes_rf = joblib.load("models/diabetes_rf.pkl")
+
+diabetes_knn = joblib.load("models/diabetes_knn.pkl")
+diabetes_knn_scaler = joblib.load("models/diabetes_knn_scaler.pkl")
+
+diabetes_svm = joblib.load("models/diabetes_svm.pkl")
+diabetes_svm_scaler = joblib.load("models/diabetes_svm_scaler.pkl")
+
+diabetes_lr = joblib.load("models/diabetes_lr.pkl")
+
+diabetes_dt = joblib.load("models/diabetes_dt.pkl")
+
+diabetes_rf_explainer = shap.TreeExplainer(diabetes_rf)
+
 
 
 
 heart_rf_explainer = shap.TreeExplainer(heart_rf)
+
+def preprocess_diabetes_input(data):
+    return pd.DataFrame([data.dict()])
+
 
 def preprocess_heart_input(data):
     X = pd.DataFrame([data.dict()])
@@ -253,6 +272,72 @@ def predict_full_heart(data: HeartInput):
 
         return {
             "disease": "Heart Disease",
+            "predictions": results,
+            "explanation_model": "Random Forest",
+            "explanations": explanations
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/predict-full/diabetes")
+def predict_full_diabetes(data: DiabetesInput):
+    try:
+        X = preprocess_diabetes_input(data)
+
+        results = {}
+
+        # ===== Random Forest =====
+        rf_prob = diabetes_rf.predict_proba(X)[0][1]
+        results["Random Forest"] = round(rf_prob * 100, 2)
+
+        # ===== KNN =====
+        X_knn = diabetes_knn_scaler.transform(X)
+        knn_prob = diabetes_knn.predict_proba(X_knn)[0][1]
+        results["KNN"] = round(knn_prob * 100, 2)
+
+        # ===== SVM =====
+        X_svm = diabetes_svm_scaler.transform(X)
+        svm_prob = diabetes_svm.predict_proba(X_svm)[0][1]
+        results["SVM"] = round(svm_prob * 100, 2)
+
+        # ===== Logistic Regression =====
+        lr_prob = diabetes_lr.predict_proba(X)[0][1]
+        results["Logistic Regression"] = round(lr_prob * 100, 2)
+
+        # ===== Decision Tree =====
+        dt_prob = diabetes_dt.predict_proba(X)[0][1]
+        results["Decision Tree"] = round(dt_prob * 100, 2)
+
+        # ===== SHAP EXPLANATION (RF ONLY) =====
+        try:
+            shap_values = diabetes_rf_explainer.shap_values(X)
+
+            if isinstance(shap_values, list):
+                shap_vals = shap_values[1][0]
+            else:
+                shap_vals = shap_values[0]
+
+            explanations = []
+
+            for feature, impact in zip(X.columns, shap_vals):
+                explanations.append({
+                    "reason": f"{feature} {'increases' if impact > 0 else 'reduces'} diabetes risk",
+                    "impact": round(float(impact), 4)
+                })
+
+            explanations = sorted(
+                explanations,
+                key=lambda x: abs(x["impact"]),
+                reverse=True
+            )[:5]
+
+        except Exception as e:
+            print("SHAP ERROR:", str(e))
+            explanations = [{"reason": "Explanation unavailable", "impact": 0}]
+
+        return {
+            "disease": "Diabetes",
             "predictions": results,
             "explanation_model": "Random Forest",
             "explanations": explanations
