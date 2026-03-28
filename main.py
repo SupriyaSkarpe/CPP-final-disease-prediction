@@ -204,3 +204,53 @@ def predict_explain_heart_rf(data: HeartInput):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/predict-full/heart")
+def predict_full_heart(data: HeartInput):
+    try:
+        X = preprocess_heart_input(data)
+
+        results = {}
+
+        # ===== Predictions =====
+        rf_prob = heart_rf.predict_proba(X)[0][1]
+        results["Random Forest"] = round(rf_prob * 100, 2)
+
+        X_scaled = heart_knn_scaler.transform(X.values)
+        knn_prob = heart_knn.predict_proba(X_scaled)[0][1]
+        results["KNN"] = round(knn_prob * 100, 2)
+
+        dt_prob = heart_dt.predict_proba(X)[0][1]
+        results["Decision Tree"] = round(dt_prob * 100, 2)
+
+        # ===== SHAP Explanation (ONLY RF) =====
+        try:
+            shap_values = heart_rf_explainer(X)
+            shap_vals = shap_values.values[0]
+
+            explanations = []
+
+            for feature, impact in zip(HEART_COLUMNS, shap_vals):
+                explanations.append({
+                    "reason": human_explanation(feature, impact),
+                    "impact": round(float(impact), 4)
+                })
+
+            explanations = sorted(
+                explanations,
+                key=lambda x: abs(x["impact"]),
+                reverse=True
+            )[:5]
+
+        except:
+            explanations = [{"reason": "Explanation unavailable", "impact": 0}]
+
+        return {
+            "disease": "Heart Disease",
+            "predictions": results,
+            "explanation_model": "Random Forest",
+            "explanations": explanations
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
