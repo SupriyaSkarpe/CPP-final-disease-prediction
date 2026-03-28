@@ -22,17 +22,19 @@ heart_dt = joblib.load("models/heart_decision_tree_best.pkl")
 #heart_xgb = joblib.load("models/heart_xgb.pkl")
 HEART_COLUMNS = joblib.load("models/heart_columns.pkl")
 # ===== DIABETES MODELS =====
-diabetes_rf = joblib.load("models/diabetes_rf.pkl")
+diabetes_rf = joblib.load("models/diabetes_rf_model.pkl")
 
-diabetes_knn = joblib.load("models/diabetes_knn.pkl")
+diabetes_knn = joblib.load("models/diabetes_knn_model.pkl")
 diabetes_knn_scaler = joblib.load("models/diabetes_knn_scaler.pkl")
 
-diabetes_svm = joblib.load("models/diabetes_svm.pkl")
+diabetes_svm = joblib.load("models/diabetes_svm_model.pkl")
 diabetes_svm_scaler = joblib.load("models/diabetes_svm_scaler.pkl")
 
-diabetes_lr = joblib.load("models/diabetes_lr.pkl")
+diabetes_lr = joblib.load("models/diabetes_lr_model.pkl")
+diabetes_svm_scaler = joblib.load("models/diabetes_lr_scaler.pkl")
 
-diabetes_dt = joblib.load("models/diabetes_dt.pkl")
+
+diabetes_dt = joblib.load("models/diabetes_dt_model.pkl")
 
 diabetes_rf_explainer = shap.TreeExplainer(diabetes_rf)
 
