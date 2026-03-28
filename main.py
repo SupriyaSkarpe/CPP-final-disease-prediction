@@ -225,8 +225,12 @@ def predict_full_heart(data: HeartInput):
 
         # ===== SHAP Explanation (ONLY RF) =====
         try:
-            shap_values = heart_rf_explainer(X)
-            shap_vals = shap_values.values[0]
+            shap_values = heart_rf_explainer.shap_values(X)
+            if isinstance(shap_values, list):
+                shap_vals = shap_values[1][0]
+            else:
+                shap_vals = shap_values[0]
+            
 
             explanations = []
 
@@ -243,7 +247,9 @@ def predict_full_heart(data: HeartInput):
             )[:5]
 
         except:
+            print("SHAP ERROR:", str(e)) 
             explanations = [{"reason": "Explanation unavailable", "impact": 0}]
+        
 
         return {
             "disease": "Heart Disease",
